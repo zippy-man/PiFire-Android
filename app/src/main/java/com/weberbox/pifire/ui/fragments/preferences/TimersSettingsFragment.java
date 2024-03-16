@@ -16,15 +16,22 @@ import androidx.preference.SwitchPreferenceCompat;
 import com.weberbox.pifire.R;
 import com.weberbox.pifire.application.PiFireApplication;
 import com.weberbox.pifire.control.ServerControl;
+import com.weberbox.pifire.enums.HttpResult;
+import com.weberbox.pifire.interfaces.HttpCallback;
 import com.weberbox.pifire.model.remote.ServerResponseModel;
 import com.weberbox.pifire.ui.activities.PreferencesActivity;
+import com.weberbox.pifire.ui.dialogs.MaterialDialogText;
 import com.weberbox.pifire.ui.utils.EmptyTextListener;
 import com.weberbox.pifire.ui.views.preferences.SwitchPreferenceCompatSocket;
 import com.weberbox.pifire.utils.AlertUtils;
 
+import java.io.IOException;
 import java.util.Objects;
 
 import io.socket.client.Socket;
+import okhttp3.Call;
+import okhttp3.Response;
+import timber.log.Timber;
 
 public class TimersSettingsFragment extends PreferenceFragmentCompat implements
         SharedPreferences.OnSharedPreferenceChangeListener {
@@ -162,14 +169,73 @@ public class TimersSettingsFragment extends PreferenceFragmentCompat implements
         }
     }
 
-    private void processPostResponse(String response) {
-        ServerResponseModel result = ServerResponseModel.parseJSON(response);
-        if (result.getResult().equals("error")) {
-            requireActivity().runOnUiThread(() ->
-                    AlertUtils.createErrorAlert(requireActivity(),
-                            result.getMessage(), false));
+    private final HttpCallback postCallback = new HttpCallback() {
+        @Override
+        public void onFailure(@NonNull Call call, @NonNull IOException e) {
+            Timber.d(e, "Request onFailure");
+            if (e.getMessage() != null && e.getMessage()
+                    .contains("CertPathValidatorException")) {
+                requireActivity().runOnUiThread(() -> {
+                    MaterialDialogText dialog = new MaterialDialogText.Builder(
+                            requireActivity())
+                            .setTitle(getString(R.string.setup_server_self_signed_title))
+                            .setMessage(getString(R.string.setup_server_self_signed))
+                            .setPositiveButton(getString(R.string.close),
+                                    (dialogInterface, which) ->
+                                            dialogInterface.dismiss())
+                            .build();
+                    dialog.show();
+                });
+            } else {
+                if (e.getMessage() != null) {
+                    requireActivity().runOnUiThread(() -> {
+                        AlertUtils.createErrorAlert(requireActivity(), e.getMessage(), false);
+                    });
+                }
+            }
         }
-    }
+
+        @Override
+        public void onResponse(@NonNull Call call, @NonNull final Response response) {
+            if (!response.isSuccessful()) {
+                Timber.d("Response: %s", response.toString());
+                if (response.code() == 401) {
+                    requireActivity().runOnUiThread(() -> {
+                        // TODO
+                        AlertUtils.createErrorAlert(requireActivity(), "Auth Required", false);
+                    });
+                } else {
+                    requireActivity().runOnUiThread(() -> {
+                        AlertUtils.createErrorAlert(requireActivity(),
+                                getString(R.string.setup_server_connect_error,
+                                        String.valueOf(response.code()), response.message()), false);
+                    });
+                    try {
+                        Timber.d("Failed to Connect Code %s, %s", response.code(), response.body().string());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            } else {
+                try {
+                    Timber.d("Response %s", response.body().string());
+                } catch (IOException  | NullPointerException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            response.close();
+        }
+
+        @Override
+        public void urlFailure(HttpResult result) {
+            switch (result) {
+                case BASE_URL -> AlertUtils.createErrorAlert(
+                        requireActivity(), "Base URL Issue", false);
+                case PARSED_URL -> AlertUtils.createErrorAlert(
+                        requireActivity(), "Parsed URL Issue", false);
+            }
+        }
+    };
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {

@@ -2,6 +2,16 @@ package com.weberbox.pifire.constants;
 
 public class ServerConstants {
 
+    // Paths
+    public static final String BASE_PATH = "mobile";
+    public static final String SETTINGS_PATH = "settings";
+    public static final String CONTROL_PATH = "control";
+    public static final String PELLETS_PATH = "pellets";
+    public static final String ADMIN_PATH = "admin";
+    public static final String INFO_PATH = "info";
+    public static final String EVENTS_PATH = "events";
+    public static final String TIMER_PATH = "timer";
+
     // Default String
     public static final String DEFAULT_SOCKET_URL = "http://192.168.1.254";
 

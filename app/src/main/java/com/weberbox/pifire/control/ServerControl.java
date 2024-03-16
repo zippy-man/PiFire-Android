@@ -2,8 +2,14 @@ package com.weberbox.pifire.control;
 
 import android.content.Context;
 
+import androidx.annotation.NonNull;
+
 import com.google.gson.Gson;
+import com.pixplicity.easyprefs.library.Prefs;
+import com.weberbox.pifire.R;
 import com.weberbox.pifire.constants.ServerConstants;
+import com.weberbox.pifire.enums.HttpResult;
+import com.weberbox.pifire.interfaces.HttpCallback;
 import com.weberbox.pifire.interfaces.SocketCallback;
 import com.weberbox.pifire.model.local.DashProbeModel.DashProbe;
 import com.weberbox.pifire.model.remote.ControlDataModel;
@@ -23,6 +29,7 @@ import com.weberbox.pifire.model.remote.SettingsDataModel.Globals;
 import com.weberbox.pifire.model.remote.SettingsDataModel.Ifttt;
 import com.weberbox.pifire.model.remote.SettingsDataModel.InfluxDB;
 import com.weberbox.pifire.model.remote.SettingsDataModel.KeepWarm;
+import com.weberbox.pifire.model.remote.SettingsDataModel.NotifyServices;
 import com.weberbox.pifire.model.remote.SettingsDataModel.OneSignalDeviceInfo;
 import com.weberbox.pifire.model.remote.SettingsDataModel.OneSignalPush;
 import com.weberbox.pifire.model.remote.SettingsDataModel.PWM;
@@ -38,88 +45,94 @@ import com.weberbox.pifire.model.remote.SettingsDataModel.SmokePlus;
 import com.weberbox.pifire.model.remote.SettingsDataModel.StartToMode;
 import com.weberbox.pifire.model.remote.SettingsDataModel.NotifyServices;
 import com.weberbox.pifire.utils.AckTimeOut;
+import com.weberbox.pifire.utils.HTTPUtils;
 import com.weberbox.pifire.utils.SettingsUtils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import io.socket.client.Ack;
 import io.socket.client.Socket;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.HttpUrl;
+import okhttp3.Response;
 import timber.log.Timber;
 
 public class ServerControl {
 
     // Start Grill
-    public static void modeStartGrill(Socket socket, SocketCallback callback) {
+    public static void modeStartGrill(Context context, HttpCallback callback) {
         String json = new Gson().toJson(new ControlDataModel()
                 .withMode(ServerConstants.G_MODE_START)
                 .withUpdated(true));
-        controlPostEmit(socket, json, callback);
+        controlHttpPost(context, json, callback);
     }
 
     // Monitor Grill
-    public static void modeMonitorGrill(Socket socket, SocketCallback callback) {
+    public static void modeMonitorGrill(Context context, HttpCallback callback) {
         String json = new Gson().toJson(new ControlDataModel()
                 .withMode(ServerConstants.G_MODE_MONITOR)
                 .withUpdated(true));
-        controlPostEmit(socket, json, callback);
+        controlHttpPost(context, json, callback);
     }
 
     // Stop Grill
-    public static void modeStopGrill(Socket socket, SocketCallback callback) {
+    public static void modeStopGrill(Context context, HttpCallback callback) {
         String json = new Gson().toJson(new ControlDataModel()
                 .withMode(ServerConstants.G_MODE_STOP)
                 .withUpdated(true));
-        controlPostEmit(socket, json, callback);
+        controlHttpPost(context, json, callback);
     }
 
     // Shutdown Grill
-    public static void modeShutdownGrill(Socket socket, SocketCallback callback) {
+    public static void modeShutdownGrill(Context context, HttpCallback callback) {
         String json = new Gson().toJson(new ControlDataModel()
                 .withMode(ServerConstants.G_MODE_SHUTDOWN)
                 .withUpdated(true));
-        controlPostEmit(socket, json, callback);
+        controlHttpPost(context, json, callback);
     }
 
     // Prime Mode
-    public static void modePrimeGrill(Socket socket, Integer primeAmount, String nextMode,
-                                      SocketCallback callback) {
+    public static void modePrimeGrill(Context context, Integer primeAmount, String nextMode,
+                                      HttpCallback callback) {
         String json = new Gson().toJson(new ControlDataModel()
                 .withMode(ServerConstants.G_MODE_PRIME)
                 .withPrimeAmount(primeAmount)
                 .withNextMode(nextMode)
                 .withUpdated(true));
-        controlPostEmit(socket, json, callback);
+        controlHttpPost(context, json, callback);
     }
 
     // Mode Smoke
-    public static void modeSmokeGrill(Socket socket, SocketCallback callback) {
+    public static void modeSmokeGrill(Context context, HttpCallback callback) {
         String json = new Gson().toJson(new ControlDataModel()
                 .withMode(ServerConstants.G_MODE_SMOKE)
                 .withUpdated(true));
-        controlPostEmit(socket, json, callback);
+        controlHttpPost(context, json, callback);
     }
 
     // Smoke Plus Enable/Disable
-    public static void setSmokePlus(Socket socket, boolean enabled, SocketCallback callback) {
+    public static void setSmokePlus(Context context, boolean enabled, HttpCallback callback) {
         String json = new Gson().toJson(new ControlDataModel().withsPlus(enabled));
-        controlPostEmit(socket, json, callback);
+        controlHttpPost(context, json, callback);
     }
 
     // Set Grill Temp
-    public static void setGrillHoldTemp(Socket socket, String temp, SocketCallback callback) {
+    public static void setGrillHoldTemp(Context context, String temp, HttpCallback callback) {
         String json = new Gson().toJson(new ControlDataModel()
                 .withUpdated(true)
                 .withMode(ServerConstants.G_MODE_HOLD)
                 .withPrimarySetPoint(Integer.valueOf(temp)));
-        controlPostEmit(socket, json, callback);
+        controlHttpPost(context, json, callback);
     }
 
     // Set Temp Notify
-    public static void setProbeNotify(Socket socket, DashProbe probe,
+    public static void setProbeNotify(Context context, DashProbe probe,
                                       ArrayList<NotifyData> notifyData, String temp,
-                                      boolean holdMode, SocketCallback callback) {
+                                      boolean holdMode, HttpCallback callback) {
         for (NotifyData notify : notifyData) {
             if (notify.getLabel().equals(probe.getLabel())) {
                 notify.setTarget(Integer.valueOf(temp));
@@ -131,12 +144,12 @@ public class ServerControl {
         String json = new Gson().toJson(new ControlDataModel()
                 .withNotifyData(notifyData)
                 .withUpdated(holdMode));
-        controlPostEmit(socket, json, callback);
+        controlHttpPost(context, json, callback);
     }
 
     // Clear Temp Notify
-    public static void clearProbeNotify(Socket socket, DashProbe probe,
-                                        ArrayList<NotifyData> notifyData, SocketCallback callback) {
+    public static void clearProbeNotify(Context context, DashProbe probe,
+                                        ArrayList<NotifyData> notifyData, HttpCallback callback) {
         for (NotifyData notify : notifyData) {
             if (notify.getLabel().equals(probe.getLabel())) {
                 notify.setTarget(0);
@@ -147,24 +160,36 @@ public class ServerControl {
         }
         String json = new Gson().toJson(new ControlDataModel()
                 .withNotifyData(notifyData));
-        controlPostEmit(socket, json, callback);
+        controlHttpPost(context, json, callback);
     }
 
-    // Timer Start/Stop
-    public static void sendTimerAction(Socket socket, String action, SocketCallback callback) {
-        timerPostEmit(socket, action, null, callback);
-    }
-
-    // Timer Set Time
-    public static void sendTimerTime(Socket socket, String hours, String minutes, boolean shutdown,
-                                     boolean keepWarm, SocketCallback callback) {
-        String json = new Gson().toJson(new PostDataModel()
-                .withTimerAction(new TimerAction()
+    // Timer Start
+    public static void sendTimerStart(Context context, String hours, String minutes,
+                                      boolean shutdown, boolean keepWarm, HttpCallback callback) {
+        String json = new Gson().toJson(new PostDataModel().withStartTimer(new TimerAction()
                         .withHours(Integer.parseInt(hours))
                         .withMinutes(Integer.parseInt(minutes))
                         .withShutdown(shutdown)
                         .withKeepWarm(keepWarm)));
-        timerPostEmit(socket, ServerConstants.PT_TIMER_START, json, callback);
+        timerHttpPost(context, json, callback);
+    }
+
+    // Timer Pause
+    public static void sendTimerPause(Context context, HttpCallback callback) {
+        String json = new Gson().toJson(new PostDataModel().withPauseTimer(true));
+        timerHttpPost(context, json, callback);
+    }
+
+    // Timer Restart
+    public static void sendTimerRestart(Context context, HttpCallback callback) {
+        String json = new Gson().toJson(new PostDataModel().withStartTimer(new TimerAction()));
+        timerHttpPost(context, json, callback);
+    }
+
+    // Timer Stop
+    public static void sendTimerStop(Context context, HttpCallback callback) {
+        String json = new Gson().toJson(new PostDataModel().withStopTimer(true));
+        timerHttpPost(context, json, callback);
     }
 
     // Shutdown Timer
@@ -195,36 +220,46 @@ public class ServerControl {
     }
 
     // Startup Exit Temp
-    public static void setStartExitTemp(Socket socket, String exitTemp,
-                                       SocketCallback callback) {
+    public static void setStartExitTemp(Context context, String exitTemp,
+                                        HttpCallback callback) {
         String json = new Gson().toJson(new SettingsDataModel()
+                .withGlobals(new Globals().withStartExitTemp(Integer.parseInt(exitTemp))));
+        settingsHttpPost(context, json, callback);
+        controlSettingsUpdatePost(context, callback);
                 .withStartup(new Startup().withStartExitTemp(Integer.parseInt(exitTemp))));
         settingsPostEmit(socket, json, callback);
         controlSettingsUpdateEmit(socket, callback);
     }
 
     // Auto Power Off
-    public static void sendAutoPowerOff(Socket socket, Boolean autoPowerOff,
-                                        SocketCallback callback) {
+    public static void sendAutoPowerOff(Context context, Boolean autoPowerOff,
+                                        HttpCallback callback) {
         String json = new Gson().toJson(new SettingsDataModel()
+                .withGlobals(new Globals().withAutoPowerOff(autoPowerOff)));
+        settingsHttpPost(context, json, callback);
+        controlSettingsUpdatePost(context, callback);
                 .withShutdown(new Shutdown().withAutoPowerOff(autoPowerOff)));
         settingsPostEmit(socket, json, callback);
         controlSettingsUpdateEmit(socket, callback);
     }
 
     // Smart Start
-    public static void setSmartStartEnabled(Socket socket, Boolean enabled,
-                                            SocketCallback callback) {
+    public static void setSmartStartEnabled(Context context, Boolean enabled,
+                                            HttpCallback callback) {
         String json = new Gson().toJson(new SettingsDataModel()
+                .withSmartStart(new SmartStart().withEnabled(enabled)));
+        settingsHttpPost(context, json, callback);
                 .withStartup(new Startup().withSmartStart(
                         new SmartStart().withEnabled(enabled))));
         settingsPostEmit(socket, json, callback);
     }
 
     // Smart Start Exit Temp
-    public static void setSmartStartExitTemp(Socket socket, String temp,
-                                            SocketCallback callback) {
+    public static void setSmartStartExitTemp(Context context, String temp,
+                                             HttpCallback callback) {
         String json = new Gson().toJson(new SettingsDataModel()
+                .withSmartStart(new SmartStart().withExitTemp(Integer.parseInt(temp))));
+        settingsHttpPost(context, json, callback);
                 .withStartup(new Startup().withSmartStart(
                         new SmartStart().withExitTemp(Integer.parseInt(temp)))));
         settingsPostEmit(socket, json, callback);
@@ -253,6 +288,20 @@ public class ServerControl {
                 .withStartup(new Startup().withStartToMode(
                         new StartToMode().withPrimarySetPoint(Integer.parseInt(temp)))));
         settingsPostEmit(socket, json, callback);
+    }
+
+    // Set Start To Mode
+    public static void setStartToMode(Context context, String mode, HttpCallback callback) {
+        String json = new Gson().toJson(new SettingsDataModel()
+                .withStartToMode(new StartToMode().withAfterStartUpMode(mode)));
+        settingsHttpPost(context, json, callback);
+    }
+
+    // Set Start To Mode Temp
+    public static void setStartToModeTemp(Context context, String temp, HttpCallback callback) {
+        String json = new Gson().toJson(new SettingsDataModel()
+                .withStartToMode(new StartToMode().withPrimarySetPoint(Integer.parseInt(temp))));
+        settingsHttpPost(context, json, callback);
     }
 
     // Set Updated Probe Map
@@ -705,6 +754,20 @@ public class ServerControl {
         controlSettingsUpdateEmit(socket, callback);
     }
 
+    // Set Start To Mode
+    public static void setStartToMode(Socket socket, String mode, SocketCallback callback) {
+        String json = new Gson().toJson(new SettingsDataModel()
+                .withStartToMode(new StartToMode().withAfterStartUpMode(mode)));
+        settingsPostEmit(socket, json, callback);
+    }
+
+    // Set Start To Mode Temp
+    public static void setStartToModeTemp(Socket socket, String temp, SocketCallback callback) {
+        String json = new Gson().toJson(new SettingsDataModel()
+                .withStartToMode(new StartToMode().withPrimarySetPoint(Integer.parseInt(temp))));
+        settingsPostEmit(socket, json, callback);
+    }
+
     // Set Pellets Warning Enabled
     public static void setPelletWarningEnabled(Socket socket, boolean enabled,
                                                SocketCallback callback) {
@@ -1094,5 +1157,126 @@ public class ServerControl {
                         }
                     }
                 });
+    }
+
+    public static void controlSettingsUpdatePost(Context context, HttpCallback callback) {
+        String json = new Gson().toJson(new ControlDataModel().withSettingsUpdate(true));
+        controlHttpPost(context, json, callback);
+    }
+
+    private static void controlHttpPost(Context context, String json, HttpCallback callback) {
+        String baseUrl = Prefs.getString(context.getString(R.string.prefs_server_address));
+        if (!baseUrl.isBlank()) {
+            HttpUrl parsedUrl = HttpUrl.parse(baseUrl);
+            if (parsedUrl != null) {
+                HttpUrl.Builder urlBuilder = parsedUrl.newBuilder();
+                urlBuilder.addPathSegment(ServerConstants.BASE_PATH);
+                urlBuilder.addPathSegment(ServerConstants.CONTROL_PATH);
+                String url = urlBuilder.build().toString();
+                HTTPUtils.createHttpPost(context, url, json, new Callback() {
+                    @Override
+                    public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                        callback.onFailure(call, e);
+                    }
+
+                    @Override
+                    public void onResponse(@NonNull Call call, @NonNull Response response)
+                            throws IOException {
+                        callback.onResponse(call, response);
+                    }
+                });
+            } else {
+                callback.urlFailure(HttpResult.PARSED_URL);
+            }
+        } else {
+            callback.urlFailure(HttpResult.BASE_URL);
+        }
+    }
+
+    private static void settingsHttpPost(Context context, String json, HttpCallback callback) {
+        String baseUrl = Prefs.getString(context.getString(R.string.prefs_server_address));
+        if (!baseUrl.isBlank()) {
+            HttpUrl parsedUrl = HttpUrl.parse(baseUrl);
+            if (parsedUrl != null) {
+                HttpUrl.Builder urlBuilder = parsedUrl.newBuilder();
+                urlBuilder.addPathSegment(ServerConstants.BASE_PATH);
+                urlBuilder.addPathSegment(ServerConstants.SETTINGS_PATH);
+                String url = urlBuilder.build().toString();
+                HTTPUtils.createHttpPost(context, url, json, new Callback() {
+                    @Override
+                    public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                        callback.onFailure(call, e);
+                    }
+
+                    @Override
+                    public void onResponse(@NonNull Call call, @NonNull Response response)
+                            throws IOException {
+                        callback.onResponse(call, response);
+                    }
+                });
+            } else {
+                callback.urlFailure(HttpResult.PARSED_URL);
+            }
+        } else {
+            callback.urlFailure(HttpResult.BASE_URL);
+        }
+    }
+
+    private static void pelletsHttpPost(Context context,String json, HttpCallback callback) {
+        String baseUrl = Prefs.getString(context.getString(R.string.prefs_server_address));
+        if (!baseUrl.isBlank()) {
+            HttpUrl parsedUrl = HttpUrl.parse(baseUrl);
+            if (parsedUrl != null) {
+                HttpUrl.Builder urlBuilder = parsedUrl.newBuilder();
+                urlBuilder.addPathSegment(ServerConstants.BASE_PATH);
+                urlBuilder.addPathSegment(ServerConstants.SETTINGS_PATH);
+                String url = urlBuilder.build().toString();
+                HTTPUtils.createHttpPost(context, url, json, new Callback() {
+                    @Override
+                    public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                        callback.onFailure(call, e);
+                    }
+
+                    @Override
+                    public void onResponse(@NonNull Call call, @NonNull Response response)
+                            throws IOException {
+                        callback.onResponse(call, response);
+                    }
+                });
+            } else {
+                callback.urlFailure(HttpResult.PARSED_URL);
+            }
+        } else {
+            callback.urlFailure(HttpResult.BASE_URL);
+        }
+    }
+
+    private static void timerHttpPost(Context context, String json, HttpCallback callback) {
+        String baseUrl = Prefs.getString(context.getString(R.string.prefs_server_address));
+        if (!baseUrl.isBlank()) {
+            HttpUrl parsedUrl = HttpUrl.parse(baseUrl);
+            if (parsedUrl != null) {
+                HttpUrl.Builder urlBuilder = parsedUrl.newBuilder();
+                urlBuilder.addPathSegment(ServerConstants.BASE_PATH);
+                urlBuilder.addPathSegment(ServerConstants.TIMER_PATH);
+                String url = urlBuilder.build().toString();
+                HTTPUtils.createHttpPost(context, url, json, new Callback() {
+                    @Override
+                    public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                        callback.onFailure(call, e);
+                    }
+
+                    @Override
+                    public void onResponse(@NonNull Call call, @NonNull Response response)
+                            throws IOException {
+                        callback.onResponse(call, response);
+                    }
+                });
+            } else {
+                callback.urlFailure(HttpResult.PARSED_URL);
+            }
+        } else {
+            callback.urlFailure(HttpResult.BASE_URL);
+        }
     }
 }

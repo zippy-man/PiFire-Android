@@ -30,7 +30,9 @@ import com.weberbox.pifire.constants.Constants;
 import com.weberbox.pifire.constants.ServerConstants;
 import com.weberbox.pifire.control.ServerControl;
 import com.weberbox.pifire.databinding.FragmentDashboardBinding;
+import com.weberbox.pifire.enums.HttpResult;
 import com.weberbox.pifire.interfaces.DashProbeCallback;
+import com.weberbox.pifire.interfaces.HttpCallback;
 import com.weberbox.pifire.model.local.DashProbeModel.DashProbe;
 import com.weberbox.pifire.model.local.ProbeOptionsModel;
 import com.weberbox.pifire.model.remote.DashDataModel;
@@ -43,6 +45,7 @@ import com.weberbox.pifire.model.remote.ServerResponseModel;
 import com.weberbox.pifire.model.view.MainViewModel;
 import com.weberbox.pifire.recycler.adapter.DashProbeAdapter;
 import com.weberbox.pifire.ui.dialogs.BottomIconDialog;
+import com.weberbox.pifire.ui.dialogs.MaterialDialogText;
 import com.weberbox.pifire.ui.dialogs.PrimePickerDialog;
 import com.weberbox.pifire.ui.dialogs.TempPickerDialog;
 import com.weberbox.pifire.ui.dialogs.TimePickerDialog;
@@ -58,6 +61,7 @@ import com.weberbox.pifire.utils.TempUtils;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +69,8 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import io.socket.client.Socket;
+import okhttp3.Call;
+import okhttp3.Response;
 import timber.log.Timber;
 
 public class DashboardFragment extends Fragment implements DialogDashboardCallback,
@@ -160,19 +166,19 @@ public class DashboardFragment extends Fragment implements DialogDashboardCallba
                                 .setAutoDismiss(true)
                                 .setNegativeButton(getString(R.string.grill_mode_start),
                                         R.drawable.ic_timer_start, (dialogInterface, which) ->
-                                                ServerControl.modeStartGrill(socket,
-                                                        this::processPostResponse))
+                                                ServerControl.modeStartGrill(requireActivity(),
+                                                        postCallback))
                                 .setNeutralButton(getString(R.string.grill_mode_monitor),
                                         R.drawable.ic_grill_monitor, (dialogInterface, which) ->
-                                                ServerControl.modeMonitorGrill(socket,
-                                                        this::processPostResponse))
+                                                ServerControl.modeMonitorGrill(requireActivity(),
+                                                postCallback))
                                 .setPositiveButton(getString(R.string.grill_mode_prime),
                                         R.drawable.ic_grill_prime, (dialogInterface, which) ->
                                                 showPrimePickerDialog())
                                 .setSwipeButton(getString(R.string.swipe_to_start), swipeEnabled,
                                         (dialogInterface, active) -> {
-                                            if (active) ServerControl.modeStartGrill(socket,
-                                                    this::processPostResponse);
+                                            if (active) ServerControl.modeStartGrill(
+                                                    requireActivity(), postCallback);
                                         })
                                 .build();
                         dialog.show();
@@ -186,20 +192,20 @@ public class DashboardFragment extends Fragment implements DialogDashboardCallba
                                 .setAutoDismiss(true)
                                 .setNegativeButton(getString(R.string.grill_mode_start),
                                         R.drawable.ic_timer_start, (dialogInterface, which) ->
-                                                ServerControl.modeStartGrill(socket,
-                                                        this::processPostResponse))
+                                                ServerControl.modeStartGrill(requireActivity(),
+                                                        postCallback))
                                 .setNeutralButton(getString(R.string.grill_mode_monitor),
                                         R.drawable.ic_grill_monitor, (dialogInterface, which) ->
-                                                ServerControl.modeMonitorGrill(socket,
-                                                        this::processPostResponse))
+                                                ServerControl.modeMonitorGrill(requireActivity(),
+                                                        postCallback))
                                 .setPositiveButton(getString(R.string.grill_mode_stop),
                                         R.drawable.ic_timer_stop, (dialogInterface, which) ->
-                                                ServerControl.modeStopGrill(socket,
-                                                        this::processPostResponse))
+                                                ServerControl.modeStopGrill(requireActivity(),
+                                                        postCallback))
                                 .setSwipeButton(getString(R.string.swipe_to_start), swipeEnabled,
                                         (dialogInterface, active) -> {
-                                            if (active) ServerControl.modeStartGrill(socket,
-                                                    this::processPostResponse);
+                                            if (active) ServerControl.modeStartGrill(
+                                                    requireActivity(), postCallback);
                                         })
                                 .build();
                         dialog.show();
@@ -210,32 +216,32 @@ public class DashboardFragment extends Fragment implements DialogDashboardCallba
                                     .setAutoDismiss(true)
                                     .setNegativeButton(getString(R.string.grill_mode_smoke),
                                             R.drawable.ic_grill_smoke, (dialogInterface, which) ->
-                                                    ServerControl.modeSmokeGrill(socket,
-                                                            this::processPostResponse))
+                                                    ServerControl.modeSmokeGrill(
+                                                            requireActivity(), postCallback))
                                     .setNeutralButton(getString(R.string.grill_mode_hold),
                                             R.drawable.ic_grill_hold, (dialogInterface, which) ->
                                                     showHoldPickerDialog())
                                     .setPositiveButton(getString(R.string.grill_mode_stop),
                                             R.drawable.ic_timer_stop,
                                             (dialogInterface, which) ->
-                                                    ServerControl.modeStopGrill(socket,
-                                                            this::processPostResponse))
+                                                    ServerControl.modeStopGrill(
+                                                            requireActivity(), postCallback))
                                     .build();
                         } else {
                             dialog = new BottomIconDialog.Builder(requireActivity())
                                     .setAutoDismiss(true)
                                     .setNegativeButton(getString(R.string.grill_mode_smoke),
                                             R.drawable.ic_grill_smoke, (dialogInterface, which) ->
-                                                    ServerControl.modeSmokeGrill(socket,
-                                                            this::processPostResponse))
+                                                    ServerControl.modeSmokeGrill(
+                                                            requireActivity(), postCallback))
                                     .setNeutralButton(getString(R.string.grill_mode_hold),
                                             R.drawable.ic_grill_hold, (dialogInterface, which) ->
                                                     showHoldPickerDialog())
                                     .setPositiveButton(getString(R.string.grill_mode_shutdown),
                                             R.drawable.ic_grill_shutdown,
                                             (dialogInterface, which) ->
-                                                    ServerControl.modeShutdownGrill(socket,
-                                                            this::processPostResponse))
+                                                    ServerControl.modeShutdownGrill(
+                                                            requireActivity(), postCallback))
                                     .build();
                         }
                         dialog.show();
@@ -249,7 +255,7 @@ public class DashboardFragment extends Fragment implements DialogDashboardCallba
         smokePlusBox.setOnClickListener(v -> {
             if (currentMode.equals(Constants.GRILL_CURRENT_HOLD)
                     || currentMode.equals(Constants.GRILL_CURRENT_SMOKE)) {
-                ServerControl.setSmokePlus(socket, !smokePlusEnabled, this::processPostResponse);
+                ServerControl.setSmokePlus(requireActivity(), !smokePlusEnabled, postCallback);
             } else if (!currentMode.equals(Constants.GRILL_CURRENT_STOP)) {
                 AlertUtils.createAlert(getActivity(), R.string.control_smoke_plus_disabled,
                         1000);
@@ -283,28 +289,24 @@ public class DashboardFragment extends Fragment implements DialogDashboardCallba
                                 .setAutoDismiss(true)
                                 .setNegativeButton(getString(R.string.timer_stop),
                                         R.drawable.ic_timer_stop, (dialogInterface, which) ->
-                                                ServerControl.sendTimerAction(socket,
-                                                        ServerConstants.PT_TIMER_STOP,
-                                                        this::processPostResponse))
+                                                ServerControl.sendTimerStop(requireActivity(),
+                                                        postCallback))
                                 .setPositiveButton(getString(R.string.timer_start),
                                         R.drawable.ic_timer_start, (dialogInterface, which) ->
-                                                ServerControl.sendTimerAction(socket,
-                                                        ServerConstants.PT_TIMER_START,
-                                                        this::processPostResponse))
+                                                ServerControl.sendTimerRestart(requireActivity(),
+                                                        postCallback))
                                 .build();
                     } else {
                         dialog = new BottomIconDialog.Builder(requireActivity())
                                 .setAutoDismiss(true)
                                 .setNegativeButton(getString(R.string.timer_stop),
                                         R.drawable.ic_timer_stop, (dialogInterface, which) ->
-                                                ServerControl.sendTimerAction(socket,
-                                                        ServerConstants.PT_TIMER_STOP,
-                                                        this::processPostResponse))
+                                                ServerControl.sendTimerStop(requireActivity(),
+                                                        postCallback))
                                 .setPositiveButton(getString(R.string.timer_pause),
                                         R.drawable.ic_timer_pause, (dialogInterface, which) ->
-                                                ServerControl.sendTimerAction(socket,
-                                                        ServerConstants.PT_TIMER_PAUSE,
-                                                        this::processPostResponse))
+                                                ServerControl.sendTimerPause(requireActivity(),
+                                                        postCallback))
                                 .build();
                     }
                     dialog.show();
@@ -490,8 +492,8 @@ public class DashboardFragment extends Fragment implements DialogDashboardCallba
 
     private void showPrimePickerDialog() {
         PrimePickerDialog dialog = new PrimePickerDialog(requireActivity(),
-                (amount, nextMode) -> ServerControl.modePrimeGrill(socket, amount, nextMode,
-                        this::processPostResponse));
+                (amount, nextMode) -> ServerControl.modePrimeGrill(
+                        requireActivity(), amount, nextMode, postCallback));
         dialog.showDialog();
     }
 
@@ -530,29 +532,27 @@ public class DashboardFragment extends Fragment implements DialogDashboardCallba
                                      boolean hold) {
         if (socket != null && notifyData != null) {
             if (hold) {
-                ServerControl.setGrillHoldTemp(socket, temp, this::processPostResponse);
+                ServerControl.setGrillHoldTemp(requireActivity(), temp, postCallback);
             }
             probe.setKeepWarm(probeOptions.getKeepWarm());
             probe.setShutdown(probeOptions.getShutdown());
-            ServerControl.setProbeNotify(socket, probe, notifyData, temp, hold,
-                    this::processPostResponse);
+            ServerControl.setProbeNotify(
+                    requireActivity(), probe, notifyData, temp, hold, postCallback);
         }
     }
 
     @Override
     public void onTempClearClicked(DashProbe probe) {
         if (socket != null && notifyData != null) {
-            ServerControl.clearProbeNotify(socket, probe, notifyData, this::processPostResponse);
+            ServerControl.clearProbeNotify(requireActivity(), probe, notifyData, postCallback);
         }
     }
 
     @Override
     public void onTimerConfirmClicked(String hours, String minutes, boolean shutdown,
                                       boolean keepWarm) {
-        if (socket != null) {
-            ServerControl.sendTimerTime(socket, hours, minutes, shutdown, keepWarm,
-                    this::processPostResponse);
-        }
+        ServerControl.sendTimerStart(
+                requireActivity(), hours, minutes, shutdown, keepWarm, postCallback);
     }
 
     @Override
@@ -612,6 +612,74 @@ public class DashboardFragment extends Fragment implements DialogDashboardCallba
                             result.getMessage(), false));
         }
     }
+
+    private final HttpCallback postCallback = new HttpCallback() {
+        @Override
+        public void onFailure(@NonNull Call call, @NonNull IOException e) {
+            Timber.d(e, "Request onFailure");
+            if (e.getMessage() != null && e.getMessage()
+                    .contains("CertPathValidatorException")) {
+                requireActivity().runOnUiThread(() -> {
+                    MaterialDialogText dialog = new MaterialDialogText.Builder(
+                            requireActivity())
+                            .setTitle(getString(R.string.setup_server_self_signed_title))
+                            .setMessage(getString(R.string.setup_server_self_signed))
+                            .setPositiveButton(getString(R.string.close),
+                                    (dialogInterface, which) ->
+                                            dialogInterface.dismiss())
+                            .build();
+                    dialog.show();
+                });
+            } else {
+                if (e.getMessage() != null) {
+                    requireActivity().runOnUiThread(() -> {
+                        AlertUtils.createErrorAlert(requireActivity(), e.getMessage(), false);
+                    });
+                }
+            }
+        }
+
+        @Override
+        public void onResponse(@NonNull Call call, @NonNull final Response response) {
+            if (!response.isSuccessful()) {
+                Timber.d("Response: %s", response.toString());
+                if (response.code() == 401) {
+                    requireActivity().runOnUiThread(() -> {
+                        // TODO
+                        AlertUtils.createErrorAlert(requireActivity(), "Auth Required", false);
+                    });
+                } else {
+                    requireActivity().runOnUiThread(() -> {
+                        AlertUtils.createErrorAlert(requireActivity(),
+                                getString(R.string.setup_server_connect_error,
+                                String.valueOf(response.code()), response.message()), false);
+                    });
+                    try {
+                        Timber.d("Failed to Connect Code %s, %s", response.code(), response.body().string());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            } else {
+                try {
+                    Timber.d("Response %s", response.body().string());
+                } catch (IOException  | NullPointerException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            response.close();
+        }
+
+        @Override
+        public void urlFailure(HttpResult result) {
+            switch (result) {
+                case BASE_URL -> AlertUtils.createErrorAlert(
+                        requireActivity(), "Base URL Issue", false);
+                case PARSED_URL -> AlertUtils.createErrorAlert(
+                        requireActivity(), "Parsed URL Issue", false);
+            }
+        }
+    };
 
     public void updateUIWithData(DashDataModel dashDataModel) {
 

@@ -259,10 +259,12 @@ public class URLSetupFragment extends Fragment implements DialogAuthCallback, Se
                                 dialog.show();
                             });
                         } else {
-                            getActivity().runOnUiThread(() -> {
-                                connectProgress.setVisibility(View.GONE);
-                                showAlerter(getActivity(), e.getMessage());
-                            });
+                            if (e.getMessage() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    connectProgress.setVisibility(View.GONE);
+                                    showAlerter(getActivity(), e.getMessage());
+                                });
+                            }
                         }
                     }
                 }

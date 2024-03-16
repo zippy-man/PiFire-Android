@@ -7,26 +7,55 @@ import com.google.gson.annotations.SerializedName;
 @SuppressWarnings("unused")
 public class PostDataModel {
 
-    @SerializedName("onesignal_device")
-    @Expose
-    private OneSignalDevice oneSignalDevice;
     @SerializedName("pellets_action")
     @Expose
     private PelletsAction pelletsAction;
-    @SerializedName("timer_action")
+    @SerializedName("start_timer")
     @Expose
-    private TimerAction timerAction;
+    private TimerAction startTimer;
+    @SerializedName("pause_timer")
+    @Expose
+    private Boolean pauseTimer;
+    @SerializedName("stop_timer")
+    @Expose
+    private Boolean stopTimer;
 
-    public OneSignalDevice getOneSignalDevice() {
-        return oneSignalDevice;
+    public TimerAction getStartTimer() {
+        return startTimer;
     }
 
-    public void setOneSignalDevice(OneSignalDevice oneSignalDevice) {
-        this.oneSignalDevice = oneSignalDevice;
+    public void setStartTimer(TimerAction startTimer) {
+        this.startTimer = startTimer;
     }
 
-    public PostDataModel withOneSignalDevice(OneSignalDevice oneSignalDevice) {
-        this.oneSignalDevice = oneSignalDevice;
+    public PostDataModel withStartTimer(TimerAction startTimer) {
+        this.startTimer = startTimer;
+        return this;
+    }
+
+    public Boolean getPauseTimer() {
+        return pauseTimer;
+    }
+
+    public void setPauseTimer(Boolean pauseTimer) {
+        this.pauseTimer = pauseTimer;
+    }
+
+    public PostDataModel withPauseTimer(Boolean pauseTimer) {
+        this.pauseTimer = pauseTimer;
+        return this;
+    }
+
+    public Boolean getStopTimer() {
+        return stopTimer;
+    }
+
+    public void setStopTimer(Boolean stopTimer) {
+        this.stopTimer = stopTimer;
+    }
+
+    public PostDataModel withStopTimer(Boolean stopTimer) {
+        this.stopTimer = stopTimer;
         return this;
     }
 
@@ -41,40 +70,6 @@ public class PostDataModel {
     public PostDataModel withPelletsAction(PelletsAction pelletsAction) {
         this.pelletsAction = pelletsAction;
         return this;
-    }
-
-    public TimerAction getTimerAction() {
-        return timerAction;
-    }
-
-    public void setPelletsTimerAction(TimerAction timerAction) {
-        this.timerAction = timerAction;
-    }
-
-    public PostDataModel withTimerAction(TimerAction timerAction) {
-        this.timerAction = timerAction;
-        return this;
-    }
-
-    public static class OneSignalDevice{
-
-        @SerializedName("onesignal_player_id")
-        @Expose
-        private String oneSignalPlayerID;
-
-        public String getOneSignalPlayerID() {
-            return oneSignalPlayerID;
-        }
-
-        public void setOneSignalPlayerID(String oneSignalPlayerID) {
-            this.oneSignalPlayerID = oneSignalPlayerID;
-        }
-
-        public OneSignalDevice withOneSignalPlayerID(String oneSignalPlayerID) {
-            this.oneSignalPlayerID = oneSignalPlayerID;
-            return this;
-        }
-
     }
 
     public static class PelletsAction {
@@ -256,6 +251,57 @@ public class PostDataModel {
             return this;
         }
 
+    }
+
+    public static class Timer {
+        @SerializedName("start_timer")
+        @Expose
+        private TimerAction startTimer;
+        @SerializedName("pause_timer")
+        @Expose
+        private Boolean pauseTimer;
+        @SerializedName("stop_timer")
+        @Expose
+        private Boolean stopTimer;
+
+        public TimerAction getStartTimer() {
+            return startTimer;
+        }
+
+        public void setStartTimer(TimerAction startTimer) {
+            this.startTimer = startTimer;
+        }
+
+        public Timer withStartTimer(TimerAction startTimer) {
+            this.startTimer = startTimer;
+            return this;
+        }
+
+        public Boolean getPauseTimer() {
+            return pauseTimer;
+        }
+
+        public void setPauseTimer(Boolean pauseTimer) {
+            this.pauseTimer = pauseTimer;
+        }
+
+        public Timer withPauseTimer(Boolean pauseTimer) {
+            this.pauseTimer = pauseTimer;
+            return this;
+        }
+
+        public Boolean getStopTimer() {
+            return stopTimer;
+        }
+
+        public void setStopTimer(Boolean stopTimer) {
+            this.stopTimer = stopTimer;
+        }
+
+        public Timer withStopTimer(Boolean stopTimer) {
+            this.stopTimer = stopTimer;
+            return this;
+        }
     }
 
     public static class TimerAction {
