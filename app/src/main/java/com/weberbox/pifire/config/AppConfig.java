@@ -46,9 +46,6 @@ public class AppConfig {
     public static final int PRIME_MIN_GRAMS = 10;
     public static final int PRIME_MAX_GRAMS = 50;
 
-    // Sentry
-    public static final String SENTRY_FEEDBACK = "User Feedback";
-
     // In App Updates
     public static final String INAPP_FIREBASE_INFO = "play_update_info";
     public static final int PRIORITY_URGENT = 5;

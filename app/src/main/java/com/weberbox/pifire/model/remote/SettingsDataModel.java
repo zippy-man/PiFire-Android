@@ -635,6 +635,9 @@ public class SettingsDataModel {
         @SerializedName("influxdb")
         @Expose
         private InfluxDB influxDB;
+        @SerializedName("mqtt")
+        @Expose
+        private Mqtt mqtt;
 
         public Apprise getApprise() {
             return apprise;
@@ -711,6 +714,19 @@ public class SettingsDataModel {
 
         public NotifyServices withInfluxdb(InfluxDB influxdb) {
             this.influxDB = influxdb;
+            return this;
+        }
+
+        public Mqtt getMqtt() {
+            return mqtt;
+        }
+
+        public void setMqtt(Mqtt mqtt) {
+            this.mqtt = mqtt;
+        }
+
+        public NotifyServices withMqtt(Mqtt mqtt) {
+            this.mqtt = mqtt;
             return this;
         }
 
@@ -1951,6 +1967,139 @@ public class SettingsDataModel {
 
         public Ifttt withAPIKey(String aPIKey) {
             this.aPIKey = aPIKey;
+            return this;
+        }
+
+    }
+
+    public static class Mqtt {
+
+        @SerializedName("broker")
+        @Expose
+        private String broker;
+        @SerializedName("enabled")
+        @Expose
+        private Boolean enabled;
+        @SerializedName("homeassistant_autodiscovery_topic")
+        @Expose
+        private String homeassistantAutodiscoveryTopic;
+        @SerializedName("id")
+        @Expose
+        private String id;
+        @SerializedName("password")
+        @Expose
+        private String password;
+        @SerializedName("port")
+        @Expose
+        private String port;
+        @SerializedName("update_sec")
+        @Expose
+        private String updateSec;
+        @SerializedName("username")
+        @Expose
+        private String username;
+
+        public String getBroker() {
+            return broker;
+        }
+
+        public void setBroker(String broker) {
+            this.broker = broker;
+        }
+
+        public Mqtt withBroker(String broker) {
+            this.broker = broker;
+            return this;
+        }
+
+        public Boolean getEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(Boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public Mqtt withEnabled(Boolean enabled) {
+            this.enabled = enabled;
+            return this;
+        }
+
+        public String getHomeassistantAutodiscoveryTopic() {
+            return homeassistantAutodiscoveryTopic;
+        }
+
+        public void setHomeassistantAutodiscoveryTopic(String homeassistantAutodiscoveryTopic) {
+            this.homeassistantAutodiscoveryTopic = homeassistantAutodiscoveryTopic;
+        }
+
+        public Mqtt withHomeassistantAutodiscoveryTopic(String homeassistantAutodiscoveryTopic) {
+            this.homeassistantAutodiscoveryTopic = homeassistantAutodiscoveryTopic;
+            return this;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public Mqtt withId(String id) {
+            this.id = id;
+            return this;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public Mqtt withPassword(String password) {
+            this.password = password;
+            return this;
+        }
+
+        public String getPort() {
+            return port;
+        }
+
+        public void setPort(String port) {
+            this.port = port;
+        }
+
+        public Mqtt withPort(String port) {
+            this.port = port;
+            return this;
+        }
+
+        public String getUpdateSec() {
+            return updateSec;
+        }
+
+        public void setUpdateSec(String updateSec) {
+            this.updateSec = updateSec;
+        }
+
+        public Mqtt withUpdateSec(String updateSec) {
+            this.updateSec = updateSec;
+            return this;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public Mqtt withUsername(String username) {
+            this.username = username;
             return this;
         }
 

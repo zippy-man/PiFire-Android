@@ -59,7 +59,8 @@ public class InfoFragment extends Fragment {
     private MainViewModel mainViewModel;
     private Socket socket;
     private RelativeLayout rootContainer;
-    private TextView version, build, cpuInfo, cpuTemp, networkInfo, upTime;
+    private TextView version, build, cpuInfo, networkInfo, upTime;
+    private TextView cpuTemp, cpuThrottle, cpuVoltage, wifiLink, wifiQuality;
     private SwipeRefreshLayout swipeRefresh;
     private ProgressBar loadingBar;
     private LicensesListAdapter licensesListAdapter;
@@ -71,7 +72,7 @@ public class InfoFragment extends Fragment {
     private VeilRecyclerFrameView inputRecycler, outputRecycler, devicesRecycler;
     private View gradient;
     private TextView viewAllButton;
-    private VeilLayout systemVeil, modulesVeil, uptimeVeil, serverVeil;
+    private VeilLayout systemVeil, modulesVeil, uptimeVeil, serverVeil, wifiVeil, cpuVeil;
 
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -109,9 +110,17 @@ public class InfoFragment extends Fragment {
         modulesVeil = binding.modulesCardView.modulesVeilLayout;
         uptimeVeil = binding.uptimeCardView.uptimeVeilLayout;
         serverVeil = binding.serverVersionCardView.serverVeilLayout;
+        wifiVeil = binding.wifiCardView.wifiVeilLayout;
+        cpuVeil = binding.cpuCardView.cpuVeilLayout;
+
+        wifiLink = binding.wifiCardView.wifiLinkText;
+        wifiQuality = binding.wifiCardView.wifiQualityText;
+
+        cpuTemp = binding.cpuCardView.cpuTempText;
+        cpuThrottle = binding.cpuCardView.cpuThrottledText;
+        cpuVoltage = binding.cpuCardView.cpuVoltageText;
 
         cpuInfo = binding.systemCardView.cpuInfoText;
-        cpuTemp = binding.systemCardView.tempInfoText;
         networkInfo = binding.systemCardView.networkInfoText;
 
         upTime = binding.uptimeCardView.uptimeInfoText;
@@ -279,6 +288,7 @@ public class InfoFragment extends Fragment {
     }
 
     private void updateUIWithData(String responseData) {
+        Timber.d("json %s", responseData);
 
         try {
 
@@ -288,8 +298,21 @@ public class InfoFragment extends Fragment {
 
             InfoDataModel infoDataModel = InfoDataModel.parseJSON(responseData);
 
+            String wifiLink = infoDataModel.getSystem().getWifiQualityValue() +
+                    " / " + infoDataModel.getSystem().getWifiQualityMax();
+
+            Integer wifiPercent = infoDataModel.getSystem().getWifiQualityPercentage();
+            String wifiQuality = wifiPercent != null ? wifiPercent + "%" : "--";
+
+            String cpuTemp = infoDataModel.getSystem().getCpuTemp() + "℃";
+            String cpuThrottled = infoDataModel.getSystem().getCpuThrottled() ?
+                    getString(R.string.info_cpu_throttle_detected) :
+                    getString(R.string.info_cpu_throttle_not_detected);
+            String cpuVoltage = infoDataModel.getSystem().getCpuUnderVoltage() ?
+                    getString(R.string.info_cpu_voltage_detected) :
+                    getString(R.string.info_cpu_voltage_not_detected);
+
             List<String> cpuInfo = infoDataModel.getCpuInfo();
-            String cpuTemp = infoDataModel.getTemp();
             List<String> networkInfo = infoDataModel.getIfConfig();
             String upTime = infoDataModel.getUpTime();
             String version = infoDataModel.getServerVersion();
@@ -348,21 +371,29 @@ public class InfoFragment extends Fragment {
 
             TransitionManager.beginDelayedTransition(rootContainer, new Fade(Fade.IN));
 
+            this.wifiLink.setText(socket.connected() ? wifiLink : getString(R.string.offline));
+            this.wifiQuality.setText(socket.connected() ? wifiQuality : getString(R.string.offline));
+
+            this.cpuTemp.setText(socket.connected() ? cpuTemp : getString(R.string.offline));
+            this.cpuThrottle.setText(socket.connected() ? cpuThrottled : getString(R.string.offline));
+            this.cpuVoltage.setText(socket.connected() ? cpuVoltage : getString(R.string.offline));
+
             this.cpuInfo.setText(cpuModel);
             this.networkInfo.setText(networkString);
             this.upTime.setText(socket.connected() ? upTime : getString(R.string.offline));
-            this.cpuTemp.setText(socket.connected() ? cpuTemp : getString(R.string.offline));
             this.gpioOutputAdapter.setList(outputs);
             this.gpioInputAdapter.setList(inputs);
             this.version.setText(version);
             this.build.setText(build);
 
+            uptimeVeil.unVeil();
+            wifiVeil.unVeil();
+            cpuVeil.unVeil();
             systemVeil.unVeil();
             outputRecycler.unVeil();
             inputRecycler.unVeil();
             devicesRecycler.unVeil();
             modulesVeil.unVeil();
-            uptimeVeil.unVeil();
             serverVeil.unVeil();
 
         } catch (JsonSyntaxException | IllegalStateException | NullPointerException e) {

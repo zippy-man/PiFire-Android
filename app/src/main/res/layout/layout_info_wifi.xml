@@ -10,29 +10,28 @@
     app:contentPadding="0dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/system_inner"
+        android:id="@+id/wifi_info_inner"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <com.weberbox.pifire.ui.views.CardViewHeaderButton
-            android:id="@+id/system_card_header"
+            android:id="@+id/wifi_info_header"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/colorPrimaryLight"
-            app:header_icon="@drawable/ic_menu_about"
-            app:header_title="@string/info_system_info"
+            app:header_icon="@drawable/ic_info_wifi"
+            app:header_title="@string/info_wifi_info"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <com.skydoves.androidveil.VeilLayout
-            android:id="@+id/system_veil_layout"
+            android:id="@+id/wifi_veil_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/colorPrimaryLight"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/system_card_header"
+            app:layout_constraintTop_toBottomOf="@+id/wifi_info_header"
             app:veilLayout_baseAlpha="0.6"
             app:veilLayout_baseColor="@color/colorLighterGrey"
             app:veilLayout_highlightAlpha="1.0"
@@ -42,44 +41,56 @@
             app:veilLayout_veiled="true">
 
             <LinearLayout
+                android:id="@+id/wifi_info"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@color/colorPrimaryLight"
                 android:orientation="vertical">
 
-                <TextView
+                <androidx.appcompat.widget.AppCompatTextView
                     style="@style/Text15AllerBold"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/default_spacing"
-                    android:text="@string/info_cpu" />
+                    android:layout_marginStart="@dimen/default_spacing"
+                    android:layout_marginTop="@dimen/default_spacing"
+                    android:layout_marginEnd="@dimen/default_spacing"
+                    android:layout_marginBottom="@dimen/small_spacing"
+                    android:text="@string/info_wifi_link"
+                    app:autoSizeTextType="uniform" />
 
-                <TextView
-                    android:id="@+id/cpu_info_text"
-                    style="@style/Text15Aller"
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/wifi_link_text"
+                    style="@style/Text15AllerBold"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/default_spacing"
                     android:layout_marginEnd="@dimen/default_spacing"
-                    android:maxLines="5"
-                    android:minWidth="100dp" />
+                    android:minWidth="120dp"
+                    android:textStyle="normal"
+                    app:autoSizeTextType="uniform" />
 
-                <TextView
+                <androidx.appcompat.widget.AppCompatTextView
                     style="@style/Text15AllerBold"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/default_spacing"
-                    android:text="@string/info_network" />
+                    android:layout_marginStart="@dimen/default_spacing"
+                    android:layout_marginTop="@dimen/default_spacing"
+                    android:layout_marginEnd="@dimen/default_spacing"
+                    android:layout_marginBottom="@dimen/small_spacing"
+                    android:text="@string/info_wifi_quality"
+                    app:autoSizeTextType="uniform" />
 
-                <TextView
-                    android:id="@+id/network_info_text"
-                    style="@style/Text15Aller"
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/wifi_quality_text"
+                    style="@style/Text15AllerBold"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/default_spacing"
                     android:layout_marginEnd="@dimen/default_spacing"
                     android:layout_marginBottom="@dimen/small_spacing"
-                    android:minWidth="120dp" />
+                    android:minWidth="120dp"
+                    android:textStyle="normal"
+                    app:autoSizeTextType="uniform" />
 
             </LinearLayout>
         </com.skydoves.androidveil.VeilLayout>

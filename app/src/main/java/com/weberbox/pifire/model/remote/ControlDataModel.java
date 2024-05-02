@@ -1,5 +1,6 @@
 package com.weberbox.pifire.model.remote;
 
+import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import com.weberbox.pifire.model.remote.DashDataModel.NotifyData;
@@ -36,6 +37,9 @@ public class ControlDataModel {
     @SerializedName("status")
     @Expose
     private String status;
+    @SerializedName("system")
+    @Expose
+    private System system;
     @SerializedName("probe_profile_update")
     @Expose
     private Boolean probeProfileUpdate;
@@ -194,6 +198,19 @@ public class ControlDataModel {
 
     public ControlDataModel withStatus(String status) {
         this.status = status;
+        return this;
+    }
+
+    public System getSystem() {
+        return system;
+    }
+
+    public void setSystem(System system) {
+        this.system = system;
+    }
+
+    public ControlDataModel withSystem(System system) {
+        this.system = system;
         return this;
     }
 
@@ -664,5 +681,80 @@ public class ControlDataModel {
             this.profileSelected = profileSelected;
             return this;
         }
+    }
+
+    public static class System {
+
+        @SerializedName("cpu_temp")
+        @Expose
+        private String cpuTemp;
+        @SerializedName("cpu_throttled")
+        @Expose
+        private Boolean cpuThrottled;
+        @SerializedName("cpu_under_voltage")
+        @Expose
+        private Boolean cpuUnderVoltage;
+        @SerializedName("wifi_quality_max")
+        @Expose
+        private Integer wifiQualityMax;
+        @SerializedName("wifi_quality_percentage")
+        @Expose
+        private Integer wifiQualityPercentage;
+        @SerializedName("wifi_quality_value")
+        @Expose
+        private Integer wifiQualityValue;
+
+        public String getCpuTemp() {
+            return cpuTemp;
+        }
+
+        public void setCpuTemp(String cpuTemp) {
+            this.cpuTemp = cpuTemp;
+        }
+
+        public Boolean getCpuThrottled() {
+            return cpuThrottled;
+        }
+
+        public void setCpuThrottled(boolean cpuThrottled) {
+            this.cpuThrottled = cpuThrottled;
+        }
+
+        public Boolean getCpuUnderVoltage() {
+            return cpuUnderVoltage;
+        }
+
+        public void setCpuUnderVoltage(boolean cpuUnderVoltage) {
+            this.cpuUnderVoltage = cpuUnderVoltage;
+        }
+
+        public Integer getWifiQualityMax() {
+            return wifiQualityMax;
+        }
+
+        public void setWifiQualityMax(Integer wifiQualityMax) {
+            this.wifiQualityMax = wifiQualityMax;
+        }
+
+        public Integer getWifiQualityPercentage() {
+            return wifiQualityPercentage;
+        }
+
+        public void setWifiQualityPercentage(Integer wifiQualityPercentage) {
+            this.wifiQualityPercentage = wifiQualityPercentage;
+        }
+
+        public Integer getWifiQualityValue() {
+            return wifiQualityValue;
+        }
+
+        public void setWifiQualityValue(Integer wifiQualityValue) {
+            this.wifiQualityValue = wifiQualityValue;
+        }
+
+    }
+
+    public static ControlDataModel parseJSON(String response) {
+        return new Gson().fromJson(response, ControlDataModel.class);
     }
 }

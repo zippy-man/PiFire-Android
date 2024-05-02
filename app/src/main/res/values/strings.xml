@@ -451,9 +451,19 @@
     <string name="settings_pwm_temp_range_note_last">Note: Temp cannot be changed for the last profile</string>
     <string name="settings_pwm_fan_control">PWM Fan Control</string>
 
+    <string name="info_wifi_info">Server Wifi Info</string>
+    <string name="info_wifi_link">Wifi Link Quality</string>
+    <string name="info_wifi_quality">Wifi Quality Percentage</string>
+    <string name="info_cpu_info">CPU Status/Health</string>
+    <string name="info_cpu_temp">CPU Temperature</string>
+    <string name="info_cpu_throttled">CPU Throttled</string>
+    <string name="info_cpu_throttle_detected">CPU Throttling was detected!</string>
+    <string name="info_cpu_throttle_not_detected">No throttling was detected</string>
+    <string name="info_cpu_voltage">CPU Under-voltage</string>
+    <string name="info_cpu_voltage_detected">CPU Under-voltage was detected! Check your power supply</string>
+    <string name="info_cpu_voltage_not_detected">No under-voltage events were detected</string>
     <string name="info_system_info">System Information</string>
     <string name="info_cpu">CPU Model</string>
-    <string name="info_cpu_temp">CPU Temp</string>
     <string name="info_network">Network Info</string>
     <string name="info_gpio_in_out">GPIO Input/Output Info</string>
     <string name="info_gpio_output_name">Output Name</string>

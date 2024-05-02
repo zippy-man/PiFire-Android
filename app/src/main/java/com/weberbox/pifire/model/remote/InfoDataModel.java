@@ -3,6 +3,7 @@ package com.weberbox.pifire.model.remote;
 import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+import com.weberbox.pifire.model.remote.ControlDataModel.System;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,9 +18,6 @@ public class InfoDataModel {
     @SerializedName("ifconfig")
     @Expose
     private List<String> ifConfig = new ArrayList<>();
-    @SerializedName("temp")
-    @Expose
-    private String temp;
     @SerializedName("uptime")
     @Expose
     private String uptime;
@@ -38,6 +36,9 @@ public class InfoDataModel {
     @SerializedName("server_build")
     @Expose
     private String serverBuild;
+    @SerializedName("system")
+    @Expose
+    private System system;
 
     public List<String> getCpuInfo() {
         return cpuInfo;
@@ -53,14 +54,6 @@ public class InfoDataModel {
 
     public void setIfConfig(List<String> ifConfig) {
         this.ifConfig = ifConfig;
-    }
-
-    public String getTemp() {
-        return temp;
-    }
-
-    public void setTemp(String temp) {
-        this.temp = temp;
     }
 
     public HashMap<String, String> getOutPins() {
@@ -109,6 +102,14 @@ public class InfoDataModel {
 
     public void setServerBuild(String serverBuild) {
         this.serverBuild = serverBuild;
+    }
+
+    public System getSystem() {
+        return system;
+    }
+
+    public void setServerBuild(System system) {
+        this.system = system;
     }
 
     public static InfoDataModel parseJSON(String response) {

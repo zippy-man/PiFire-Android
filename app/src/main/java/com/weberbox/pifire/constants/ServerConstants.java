@@ -2,7 +2,7 @@ package com.weberbox.pifire.constants;
 
 public class ServerConstants {
 
-    // Default String
+    // Default Socket
     public static final String DEFAULT_SOCKET_URL = "http://192.168.1.254";
 
     // Socket IO Strings
